@@ -1,3 +1,9 @@
+# Project specific
+.vscode/
+data/
+index/
+*.ipynb
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
