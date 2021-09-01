@@ -14,7 +14,7 @@ class TextProcessor:
     def __init__(self):
         self._word_stems = {}
         self._stemmer = SnowballStemmer(language='english')
-        self._tokenizer_regex = re.compile(r'[^a-z0-9]+')  # Call after case folding.
+        self._tokenizer_regex = re.compile(r'[^a-z0-9#]+')  # Call after case folding.
         self._category_regex = re.compile(r'\[\[Category:(.*)\]\]', flags=re.DOTALL)
         self._infobox_regex = re.compile(r'\{\{Infobox', flags=re.DOTALL)
         self._references_regex = re.compile(r'&lt;ref[^/]*?&gt;(.*?)&lt;/ref&gt;', flags=re.DOTALL)
@@ -25,7 +25,9 @@ class TextProcessor:
                                          # also removed by the current regex.
                 (len(word) >= conf.MIN_INDEXED_WORD_LENGTH) and
                 (len(word) <= conf.MAX_INDEXED_WORD_LENGTH) and
-                (not word.isnumeric()))  # Removes standalone numbers.
+                ((not word.isnumeric()) or (len(word) <= conf.MAX_INDEXED_NUM_LENGTH)) and
+                (not word.startswith('#')))  # Remove hex codes.
+                # (not word.isnumeric()))  # Removes standalone numbers.
 
     def Clean(self, text):
         # TODO: Count total number of words somewhere here.
