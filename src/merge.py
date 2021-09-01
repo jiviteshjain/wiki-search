@@ -1,10 +1,9 @@
+from io import FileIO
 import os
 import heapq
 import config as conf
 import sys
 from datetime import datetime
-
-from parser import IntermediateFileHandler
 
 class HeapNode:
     def __init__(self, word, posting_list, file_id):
@@ -25,7 +24,7 @@ class HeapNode:
         if self._word != other.Word():
             return self._word < other.Word()
 
-        return self._file_id() < other.FileId()
+        return self._file_id < other.FileId()
 
 class FinalFileHandler:
     def __init__(self, path):
@@ -44,7 +43,7 @@ class FinalFileHandler:
         self._lines.append(line)
         self._word_count += 1
 
-        if len(self._lines) >= conf.TOKENS_PER_FILE:
+        if len(self._lines) >= conf.TOKENS_PER_FINAL_FILE:
             with open(os.path.join(self._path, f'{self._file_count}.txt'), 'w') as f:
                 for line in self._lines:
                     f.write(line + '\n')
@@ -120,7 +119,7 @@ def merge(path):
 
     intermed_handler = IntermediatePageHandler(path)
     
-    heap = [intermed_handler.ReadLine(i) for i in len(intermed_handler)]
+    heap = [intermed_handler.ReadLine(i) for i in range(len(intermed_handler))]
     heapq.heapify(heap)
 
     final_handler = FinalFileHandler(path)
@@ -138,7 +137,7 @@ def merge(path):
                 final_handler.AddLine(current_word, current_posting_list)
             
             current_word = next_node.Word()
-            current_posting_list = next_node.PostingList
+            current_posting_list = next_node.PostingList()
 
         new_node = intermed_handler.ReadLine(next_node.FileId())
         if new_node is not None:
