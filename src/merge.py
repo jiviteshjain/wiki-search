@@ -3,6 +3,7 @@ import os
 import heapq
 import config as conf
 import sys
+import shutil
 
 class HeapNode:
     def __init__(self, word, posting_list, file_id):
@@ -110,6 +111,8 @@ class IntermediatePageHandler:
             except IOError:
                 print(f'Failed to close an intermediate file. Skipping.', file=sys.stderr)
                 pass
+
+        shutil.rmtree(self._path)
 
 
 def Merge(path):

@@ -21,9 +21,12 @@ def IndexMain(dump_path, index_path, stats_path):
     begin_time = datetime.now()
     
     print('Creating intermediate index.')
-    Parse(dump_path, index_path)
+    discarded_count = Parse(dump_path, index_path)
     print('Merging index.')
-    Merge(index_path)
+    indexed_count = Merge(index_path)
+
+    with open(stats_path, 'w') as f:
+        f.write(str(discarded_count + indexed_count) + '\n' + str(indexed_count) + '\n')
     
     end_time = datetime.now()
     time_delta = end_time - begin_time

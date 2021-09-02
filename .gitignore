@@ -3,6 +3,8 @@
 data/
 index/
 *.ipynb
+stats.txt
+invertedindex_stats.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

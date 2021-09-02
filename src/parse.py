@@ -17,16 +17,21 @@ class TextProcessor:
         self._category_regex = re.compile(r'\[\[Category:(.*)\]\]', flags=re.DOTALL)
         self._infobox_regex = re.compile(r'\{\{Infobox', flags=re.DOTALL)
         self._references_regex = re.compile(r'<ref[^/]*?>(.*?)</ref>', flags=re.DOTALL)
+        self._discarded_words = set()
 
     def _IsUsefulWord(self, word):
-        return ((word not in self.STOPWORDS) and
-                (word.isalnum()) and  # Removes punctuation, which is
-                                         # also removed by the current regex.
-                (len(word) >= conf.MIN_INDEXED_WORD_LENGTH) and
-                (len(word) <= conf.MAX_INDEXED_WORD_LENGTH) and
-                ((not word.isnumeric()) or (len(word) <= conf.MAX_INDEXED_NUM_LENGTH)) and
-                (not word.startswith('#')))  # Remove hex codes.
-                # (not word.isnumeric()))  # Removes standalone numbers.
+        is_useful = ((word not in self.STOPWORDS) and
+                     (word.isalnum()) and  # Removes punctuation, which is
+                                           # also removed by the current regex.
+                     (len(word) >= conf.MIN_INDEXED_WORD_LENGTH) and
+                     (len(word) <= conf.MAX_INDEXED_WORD_LENGTH) and
+                     ((not word.isnumeric()) or (len(word) <= conf.MAX_INDEXED_NUM_LENGTH)) and
+                     (not word.startswith('#')))  # Remove hex codes.
+                     # (not word.isnumeric()))  # Removes standalone numbers.
+        if not is_useful:
+            self._discarded_words.add(word)
+
+        return is_useful
 
     def _Stem(self, word):
         if word not in self._word_stems:
@@ -57,6 +62,9 @@ class TextProcessor:
 
     def GetRegex(self):
         return self._infobox_regex, self._references_regex, self._category_regex
+
+    def GetDiscardedWordsCount(self):
+        return len(self._discarded_words)
 
 
 class Article:
@@ -303,6 +311,7 @@ def Parse(data_path, index_path):
         parser.parse(os.path.join(data_path, file))
     
     title_handler.WriteFile()
+    return text_processor.GetDiscardedWordsCount()
 
     
 
