@@ -1,10 +1,11 @@
 # %%
-import xml.sax
+# import xml.sax
 import config as conf
 import os
 import shutil
 from nltk.stem.snowball import SnowballStemmer
 import re
+import xml.etree.cElementTree as ET
 # import Stemmer
 # %%
 class TextProcessor:
@@ -243,47 +244,51 @@ class TitleHandler:
 
 # Implementating of xml.sax's ContentHandler, which contains callbacks
 # for tag events that occur while parsing the Wikipedia XML.
-class ParsingHandler(xml.sax.ContentHandler):
+class ParsingHandler:
     def __init__(self, inverted_index, intermed_file_handler, title_handler):
-        super().__init__()
-        self._tag = ''
         self._article_id = 0
-        self._title = ''
-        self._text = ''
 
         self._inverted_index = inverted_index
         self._intermed_file_handler = intermed_file_handler
         self._title_handler = title_handler
 
-    def startElement(self, name, attrs):
-        self._tag = name
+    def Parse(self, filename):
 
-    def characters(self, content):
-        # Only store the content if the current tag is <title> or <text>.
-        # These tags only appear within a <page> tag.
-        if self._tag == 'title':
-            self._title += content
-        elif self._tag == 'text':
-            self._text += content
+        for event, element in ET.iterparse(filename, events=('end', )):
 
-    def endElement(self, name):
-        # Because the content of other tags is processed on the fly as
-        # new characters are discovered, the only tag that needs to be
-        # handled at the end is the <page> tag.
-        if name == 'page':
+            if event != 'end':
+                continue
+
+            if 'page' not in element.tag:  # Checks if tag == <page>
+                continue
+
+            for child in list(element):
+                if 'title' in child.tag:  # Checks if tag == <title>
+                    title_text = child.text
+                if 'revision' in child.tag:  # Checks if tag == <revision>
+                    revision_element = child
+
+            for child in list(revision_element):
+                if 'text' in child.tag:  # Checks if tag == <text>
+                    body_text = child.text if child.text is not None else ''
+                    break
+            else:
+                body_text = ''
+
+            element.clear()
+            print(str(self._article_id), end='\r')
+
             # Order of articles in the title handler is important. This
             # should not be performed in workers.
-            self._title_handler.AddTitle(self._title)
+            self._title_handler.AddTitle(title_text)
 
-            article = Article(self._article_id, self._title, self._text)
+            article = Article(self._article_id, title_text, body_text)
             # Adding the article to the inverted index calls Article.Parse(),
             # which parses and indexes the individual article and can be
             # delegated to workers.
             self._inverted_index.AddArticle(article)
             
             self._article_id += 1
-            self._title = ''
-            self._text = ''
 
             # Reached enough articles to write in a separate file.
             if self._inverted_index.ArticleCount() == conf.ARTICLES_PER_INTERMED_FILE:
@@ -291,10 +296,9 @@ class ParsingHandler(xml.sax.ContentHandler):
                 self._inverted_index.Clear()
 
         # Write the articles left over at the end.
-        elif name == 'mediawiki':
-            if self._inverted_index.ArticleCount() > 0:
-                self._intermed_file_handler.WriteFile(self._inverted_index.Get())
-                # self._inverted_index.Clear()
+        if self._inverted_index.ArticleCount() > 0:
+            self._intermed_file_handler.WriteFile(self._inverted_index.Get())
+            self._inverted_index.Clear()
 
     
 def Parse(data_path, index_path):
@@ -305,14 +309,10 @@ def Parse(data_path, index_path):
     inverted_index = InvertedIndex(text_processor)
     intermed_file_handler = IntermediateFileHandler(index_path)
     title_handler = TitleHandler(index_path)
-    
-    parser = xml.sax.make_parser()
-    parser.setFeature(xml.sax.handler.feature_namespaces, 0)
-    handler = ParsingHandler(inverted_index, intermed_file_handler, title_handler)
-    parser.setContentHandler(handler)
+    parser = ParsingHandler(inverted_index, intermed_file_handler, title_handler)
     
     for file in os.listdir(data_path):
-        parser.parse(os.path.join(data_path, file))
+        parser.Parse(os.path.join(data_path, file))
     
     title_handler.WriteFile()
     return text_processor.GetDiscardedWordsCount()
