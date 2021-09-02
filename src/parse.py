@@ -5,6 +5,7 @@ import os
 import shutil
 from nltk.stem.snowball import SnowballStemmer
 import re
+# import Stemmer
 # %%
 class TextProcessor:
 
@@ -13,6 +14,7 @@ class TextProcessor:
     def __init__(self):
         self._word_stems = {}
         self._stemmer = SnowballStemmer(language='english')
+        # self._stemmer = Stemmer.Stemmer('english', maxCacheSize=500000)
         self._tokenizer_regex = re.compile(r'[^a-z0-9#]+')  # Call after case folding.
         self._category_regex = re.compile(r'\[\[Category:(.*)\]\]', flags=re.DOTALL)
         self._infobox_regex = re.compile(r'\{\{Infobox', flags=re.DOTALL)
@@ -26,6 +28,7 @@ class TextProcessor:
                      (len(word) >= conf.MIN_INDEXED_WORD_LENGTH) and
                      (len(word) <= conf.MAX_INDEXED_WORD_LENGTH) and
                      ((not word.isnumeric()) or (len(word) <= conf.MAX_INDEXED_NUM_LENGTH)) and
+                    #  (not (any(c.isdigit() for c in word) and any(not c.isdigit() for c in word))) and
                      (not word.startswith('#')))  # Remove hex codes.
                      # (not word.isnumeric()))  # Removes standalone numbers.
         if not is_useful:
@@ -34,6 +37,7 @@ class TextProcessor:
         return is_useful
 
     def _Stem(self, word):
+        # return self._stemmer.stemWord(word)
         if word not in self._word_stems:
             self._word_stems[word] = self._stemmer.stem(word)
         
@@ -290,7 +294,7 @@ class ParsingHandler(xml.sax.ContentHandler):
         elif name == 'mediawiki':
             if self._inverted_index.ArticleCount() > 0:
                 self._intermed_file_handler.WriteFile(self._inverted_index.Get())
-                self._inverted_index.Clear()
+                # self._inverted_index.Clear()
 
     
 def Parse(data_path, index_path):
