@@ -1,9 +1,8 @@
-from io import FileIO
+# %%
 import os
 import heapq
 import config as conf
 import sys
-from datetime import datetime
 
 class HeapNode:
     def __init__(self, word, posting_list, file_id):
@@ -113,10 +112,7 @@ class IntermediatePageHandler:
                 pass
 
 
-def merge(path):
-
-    start_time = datetime.now()
-
+def Merge(path):
     intermed_handler = IntermediatePageHandler(path)
     
     heap = [intermed_handler.ReadLine(i) for i in range(len(intermed_handler))]
@@ -149,8 +145,7 @@ def merge(path):
     word_count = final_handler.Close()
     intermed_handler.Close()
 
-    end_time = datetime.now()
-
-    return (end_time - start_time), word_count
+    return word_count
     
-print(merge('../index/'))
+# print(Merge('../index/'))
+# %%

@@ -1,6 +1,5 @@
 # %%
 import xml.sax
-from datetime import datetime
 import config as conf
 import os
 import shutil
@@ -17,7 +16,7 @@ class TextProcessor:
         self._tokenizer_regex = re.compile(r'[^a-z0-9#]+')  # Call after case folding.
         self._category_regex = re.compile(r'\[\[Category:(.*)\]\]', flags=re.DOTALL)
         self._infobox_regex = re.compile(r'\{\{Infobox', flags=re.DOTALL)
-        self._references_regex = re.compile(r'&lt;ref[^/]*?&gt;(.*?)&lt;/ref&gt;', flags=re.DOTALL)
+        self._references_regex = re.compile(r'<ref[^/]*?>(.*?)</ref>', flags=re.DOTALL)
 
     def _IsUsefulWord(self, word):
         return ((word not in self.STOPWORDS) and
@@ -29,19 +28,32 @@ class TextProcessor:
                 (not word.startswith('#')))  # Remove hex codes.
                 # (not word.isnumeric()))  # Removes standalone numbers.
 
+    def _Stem(self, word):
+        if word not in self._word_stems:
+            self._word_stems[word] = self._stemmer.stem(word)
+        
+        return self._word_stems[word]
+
     def Clean(self, text):
         # TODO: Count total number of words somewhere here.
         words = [w for w in self._tokenizer_regex.split(text.casefold()) if self._IsUsefulWord(w)]
         tokens = []
         for word in words:
-            if word not in self._word_stems:
-                stem = self._stemmer.stem(word)
-                tokens.append(stem)
-                self._word_stems[word] = stem
-            else:
-                tokens.append(self._word_stems[word])
+            tokens.append(self._Stem(word))
 
         return tokens
+
+    def FormatQuery(self, query):
+        tokens = self._tokenizer_regex.split(query.casefold())
+
+        formatted_query = {}
+        for token in tokens:
+            if self._IsUsefulWord(token):
+                formatted_query[token] = self._Stem(token)
+            else:
+                formatted_query[token] = None
+        
+        return formatted_query
 
     def GetRegex(self):
         return self._infobox_regex, self._references_regex, self._category_regex
@@ -273,7 +285,7 @@ class ParsingHandler(xml.sax.ContentHandler):
                 self._inverted_index.Clear()
 
     
-def parse(data_path, index_path):
+def Parse(data_path, index_path):
     shutil.rmtree(index_path, ignore_errors=True)
     os.makedirs(os.path.join(index_path, conf.INTERMED_DIR))
 
@@ -286,19 +298,14 @@ def parse(data_path, index_path):
     parser.setFeature(xml.sax.handler.feature_namespaces, 0)
     handler = ParsingHandler(inverted_index, intermed_file_handler, title_handler)
     parser.setContentHandler(handler)
-
-    start_time = datetime.now()
     
     for file in os.listdir(data_path):
         parser.parse(os.path.join(data_path, file))
     
     title_handler.WriteFile()
-    
-    end_time = datetime.now()
-    return end_time - start_time
 
     
 
 
 # %%
-parse('../data/', '../index/')
+# Parse('../data/', '../index/')
