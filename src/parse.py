@@ -311,8 +311,9 @@ def Parse(data_path, index_path):
     title_handler = TitleHandler(index_path)
     parser = ParsingHandler(inverted_index, intermed_file_handler, title_handler)
     
-    for file in os.listdir(data_path):
-        parser.Parse(os.path.join(data_path, file))
+    parser.Parse(data_path)
+    # for file in os.listdir(data_path):
+    #     parser.Parse(os.path.join(data_path, file))
     
     title_handler.WriteFile()
     return text_processor.GetDiscardedWordsCount()
