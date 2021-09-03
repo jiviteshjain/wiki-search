@@ -138,14 +138,3 @@ def Search(path, query):
                     'references': out['r']
                 }
     return search_results
-
-
-    
-
-# %%
-# index_head = IndexHeadsManager('../index/')
-# print(FieldAgnosticSearch('aliothefool', index_head, '../index/'))
-# %%
-# from pprint import pprint
-# pprint(Search('../index/', 'and vagabond'))
-# %%

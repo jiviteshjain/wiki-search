@@ -149,6 +149,3 @@ def Merge(path):
     intermed_handler.Close()
 
     return word_count
-    
-# print(Merge('../index/'))
-# %%

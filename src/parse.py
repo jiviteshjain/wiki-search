@@ -54,7 +54,7 @@ class TextProcessor:
         return tokens
 
     def FormatQuery(self, query):
-        tokens = self._tokenizer_regex.split(query.casefold())
+        tokens = [w for w in self._tokenizer_regex.split(query.casefold()) if len(w) > 0]  # Skip empty strings created by split.
 
         formatted_query = {}
         for token in tokens:
@@ -317,9 +317,3 @@ def Parse(data_path, index_path):
     
     title_handler.WriteFile()
     return text_processor.GetDiscardedWordsCount()
-
-    
-
-
-# %%
-# Parse('../data/', '../index/')
