@@ -231,16 +231,26 @@ class IntermediateFileHandler:
 # Non-processed strings are written here, as the output is user-facing.
 class TitleHandler:
     def __init__(self, path):
-        self._path = path
+        self._path = os.path.join(path, conf.TITLES_DIR)
+        self._file_count = 0
         self._titles = []
 
     def AddTitle(self, title):
         self._titles.append(title.strip())
 
+    def TitlesCount(self):
+        return len(self._titles)
+
     def WriteFile(self):
-        with open(os.path.join(self._path, conf.TITLES_FILE), 'w') as f:
+        if len(self._titles) == 0:
+            return
+
+        with open(os.path.join(self._path, f'{self._file_count}.txt'), 'w') as f:
             for title in self._titles:
                 f.write(title + '\n')
+
+        self._file_count += 1
+        self._titles = []
 
 # Implementating of xml.sax's ContentHandler, which contains callbacks
 # for tag events that occur while parsing the Wikipedia XML.
@@ -282,6 +292,10 @@ class ParsingHandler:
             # should not be performed in workers.
             self._title_handler.AddTitle(title_text)
 
+            # Reached enough titles to write in a separate file.
+            if self._title_handler.TitlesCount() == conf.TITLES_PER_FILE:
+                self._title_handler.WriteFile()
+
             article = Article(self._article_id, title_text, body_text)
             # Adding the article to the inverted index calls Article.Parse(),
             # which parses and indexes the individual article and can be
@@ -300,10 +314,14 @@ class ParsingHandler:
             self._intermed_file_handler.WriteFile(self._inverted_index.Get())
             self._inverted_index.Clear()
 
+        if self._title_handler.TitlesCount() > 0:
+            self._title_handler.WriteFile()
+
     
 def Parse(data_path, index_path):
     shutil.rmtree(index_path, ignore_errors=True)
     os.makedirs(os.path.join(index_path, conf.INTERMED_DIR))
+    os.makedirs(os.path.join(index_path, conf.TITLES_DIR))
 
     text_processor = TextProcessor()
     inverted_index = InvertedIndex(text_processor)
@@ -312,8 +330,5 @@ def Parse(data_path, index_path):
     parser = ParsingHandler(inverted_index, intermed_file_handler, title_handler)
     
     parser.Parse(data_path)
-    # for file in os.listdir(data_path):
-    #     parser.Parse(os.path.join(data_path, file))
     
-    title_handler.WriteFile()
     return text_processor.GetDiscardedWordsCount()
