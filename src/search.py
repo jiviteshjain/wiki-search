@@ -52,7 +52,6 @@ class TitleManager:
         line_num = (article_id % conf.TITLES_PER_FILE) + 1
 
         # Returns empty string on error.
-        print(os.path.join(self._path, f'{file_id}.txt'), line_num)
         return linecache.getline(os.path.join(self._path, f'{file_id}.txt'), line_num).strip().lower()
 
 
@@ -89,6 +88,7 @@ def FieldAgnosticSearch(token, index_heads, path):
 
 
 def SearchToken(token, fields, file_id, path):
+    print('start', os.getpid())
     if file_id < 0:
         return {}
 
@@ -103,7 +103,7 @@ def SearchToken(token, fields, file_id, path):
 
     posting_list = posting_string.split('d')[1:]  # Gauranteed to start with 'd' and be non-empty.
                                                   # Skip the empty string in the beginning.
-    parsed_posting_list = [Searcher._ParsePosting(p) for p in posting_list]
+    parsed_posting_list = [ParsePosting(p) for p in posting_list]
     
     search_results = {}
     for posting in parsed_posting_list:
@@ -123,7 +123,32 @@ def SearchToken(token, fields, file_id, path):
 
         search_results[posting['d']] = math.log10(tf) * math.log10(idf)
 
+    print('end', os.getpid())
     return search_results
+
+def ParsePosting(posting):
+        parsed_posting = {}
+        
+        field = 'd'
+        cur = ''
+        
+        for c in posting:
+            if c.isalpha():
+                parsed_posting[field] = int(cur)
+                field = c
+                cur = ''
+            else:
+                cur += c
+        
+        if len(cur) > 0:
+            parsed_posting[field] = int(cur)
+
+        # Set empty fields to 0.
+        for field in ('t', 'i', 'b', 'c', 'l', 'r'):  # 'd' is guaranteed to be present.
+            if field not in parsed_posting:
+                parsed_posting[field] = 0
+
+        return parsed_posting
 
 
 class Searcher:
@@ -200,11 +225,16 @@ class Searcher:
         # main thread.
         file_ids = [self._index_heads.GetFile(t) for t in query_tokens.keys()]
 
-        token_matches = self._pool.starmap(SearchToken,
-                                           zip(query_tokens.keys(),
+        # token_matches = self._pool.starmap(SearchToken,
+        #                                    zip(query_tokens.keys(),
+        #                                        query_tokens.values(),
+        #                                        file_ids,
+        #                                        repeat(self._path)),
+        #                                    conf.CHUNK_SIZE)
+        token_matches = [SearchToken(*x) for x in zip(query_tokens.keys(),
                                                query_tokens.values(),
                                                file_ids,
-                                               repeat(self._path)))
+                                               repeat(self._path))]
 
         # Aggregate results across terms, by adding the scores.
         scored_matches = {}
@@ -231,3 +261,10 @@ class Searcher:
         return entitled_search_results
 
 # %%
+path = 'index'
+text_processor = TextProcessor()
+index_heads = IndexHeadsManager(path)
+titles = TitleManager(path)
+# pool = Pool(conf.NUM_SEARCH_WORKERS)
+searcher = Searcher(path, text_processor, index_heads, titles, None)
+searcher.Search('t:world0 i:cricket b:cup')
