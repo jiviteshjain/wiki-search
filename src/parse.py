@@ -53,6 +53,7 @@ class TextProcessor:
 
         return tokens
 
+    # UNUSED
     def FormatQuery(self, query):
         tokens = [w for w in self._tokenizer_regex.split(query.casefold()) if len(w) > 0]  # Skip empty strings created by split.
 
