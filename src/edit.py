@@ -1,21 +1,15 @@
 # %%
 import os
-import matplotlib.pyplot as plt
 from tqdm.auto import tqdm as tq
-import numpy as np
 from search import Searcher
 import config as conf
 from parse import Encode
 
-char_counts = []
-doc_counts = []
-alphanumerics = 0
-
 # %%
-src_path = '../index/'
-dst_path = '../index2/'
+src_path = '../index-final/'
+dst_path = '../index-final-truncated/'
 os.makedirs(dst_path)
-THRESH = 100000
+THRESH = 500000
 
 def PostingListToString(posting):
     posting_str = 'd' + Encode(posting['d'])
@@ -63,4 +57,5 @@ for file in pbar:
                 
                 f2.write(word + ':' + posting_string + '\n')
 
+print('COPY HEADS AND TITLES')
 # %%
