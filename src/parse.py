@@ -12,7 +12,10 @@ def Encode(number, base=conf.ENCODING_BASE):
     alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     if not isinstance(number, (int, )):
-        raise TypeError('number must be an integer')
+        raise TypeError('number must be an integer.')
+
+    if base > len(alphabet):
+        raise ValueError(f'Maximum supported base is {len(alphabet)}.')
 
     base36 = ''
     sign = ''
