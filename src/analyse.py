@@ -3,6 +3,7 @@ import os
 import matplotlib.pyplot as plt
 from tqdm.auto import tqdm as tq
 import numpy as np
+from pprint import pprint
 
 char_counts = []
 doc_counts = []
@@ -10,7 +11,7 @@ alphanumerics = []
 long_words = []
 THRESH = 100000
 # %%
-path = '../index2/'
+path = '../index-small/'
 for file in tq(os.listdir(path)):
     if file in ('heads.txt', 'titles'):
         continue
@@ -22,7 +23,7 @@ for file in tq(os.listdir(path)):
             if doc_counts[-1] > THRESH:
                 long_words.append((word, doc_counts[-1]))
             word = word.strip()
-            if len(word) > 7 and word.isalnum() and (not word.isalpha()) and (not word.isnumeric()):
+            if word.isalnum() and (not word.isalpha()) and (not word.isnumeric()):
                 alphanumerics.append(word)
 # %%
 print(alphanumerics)

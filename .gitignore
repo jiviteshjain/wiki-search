@@ -6,8 +6,8 @@ analysis/
 *.ipynb
 stats.txt
 invertedindex_stats.txt
-queries.txt
-queries_op.txt
+queries*.txt
+queries_op*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -143,7 +143,7 @@ class Searcher:
         cur = ''
         
         for c in posting:
-            if c.isalpha():
+            if c.isalpha() and c.islower():
                 parsed_posting[field] = int(cur, base=conf.ENCODING_BASE)
                 field = c
                 cur = ''
