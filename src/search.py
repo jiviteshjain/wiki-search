@@ -144,14 +144,14 @@ class Searcher:
         
         for c in posting:
             if c.isalpha():
-                parsed_posting[field] = int(cur)
+                parsed_posting[field] = int(cur, base=conf.ENCODING_BASE)
                 field = c
                 cur = ''
             else:
                 cur += c
         
         if len(cur) > 0:
-            parsed_posting[field] = int(cur)
+            parsed_posting[field] = int(cur, base=conf.ENCODING_BASE)
 
         # Set empty fields to 0.
         for field in ('t', 'i', 'b', 'c', 'l', 'r'):  # 'd' is guaranteed to be present.

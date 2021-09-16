@@ -8,6 +8,20 @@ import re
 import xml.etree.cElementTree as ET
 # import Stemmer
 # %%
+def GetEncodingSymbol(num):
+    if (num >= 0 and num <= 9):
+        return chr(num + ord('0'))
+    else:
+        return chr(num - 10 + ord('A'))
+
+def Encode(num, base=conf.ENCODING_BASE):
+    out = ''
+    while num:
+        out += GetEncodingSymbol(num % base)
+        num = num // base
+
+    return out[::-1]
+
 class TextProcessor:
 
     STOPWORDS = set(['whence', 'here', 'show', 'were', 'why', 'nt', 'the', 'whereupon', 'not', 'more', 'how', 'eight', 'indeed', 'i', 'only', 'via', 'nine', 're', 'themselves', 'almost', 'to', 'already', 'front', 'least', 'becomes', 'thereby', 'doing', 'her', 'together', 'be', 'often', 'then', 'quite', 'less', 'many', 'they', 'ourselves', 'take', 'its', 'yours', 'each', 'would', 'may', 'namely', 'do', 'whose', 'whether', 'side', 'both', 'what', 'between', 'toward', 'our', 'whereby', "'m", 'formerly', 'myself', 'had', 'really', 'call', 'keep', "'re", 'hereupon', 'can', 'their', 'eleven', '’m', 'even', 'around', 'twenty', 'mostly', 'did', 'at', 'an', 'seems', 'serious', 'against', "n't", 'except', 'has', 'five', 'he', 'last', '‘ve', 'because', 'we', 'himself', 'yet', 'something', 'somehow', '‘m', 'towards', 'his', 'six', 'anywhere', 'us', '‘d', 'thru', 'thus', 'which', 'everything', 'become', 'herein', 'one', 'in', 'although', 'sometime', 'give', 'cannot', 'besides', 'across', 'noone', 'ever', 'that', 'over', 'among', 'during', 'however', 'when', 'sometimes', 'still', 'seemed', 'get', "'ve", 'him', 'with', 'part', 'beyond', 'everyone', 'same', 'this', 'latterly', 'no', 'regarding', 'elsewhere', 'others', 'moreover', 'else', 'back', 'alone', 'somewhere', 'are', 'will', 'beforehand', 'ten', 'very', 'most', 'three', 'former', '’re', 'otherwise', 'several', 'also', 'whatever', 'am', 'becoming', 'beside', '’s', 'nothing', 'some', 'since', 'thence', 'anyway', 'out', 'up', 'well', 'it', 'various', 'four', 'top', '‘s', 'than', 'under', 'might', 'could', 'by', 'too', 'and', 'whom', '‘ll', 'say', 'therefore', "'s", 'other', 'throughout', 'became', 'your', 'put', 'per', "'ll", 'fifteen', 'must', 'before', 'whenever', 'anyone', 'without', 'does', 'was', 'where', 'thereafter', "'d", 'another', 'yourselves', 'n‘t', 'see', 'go', 'wherever', 'just', 'seeming', 'hence', 'full', 'whereafter', 'bottom', 'whole', 'own', 'empty', 'due', 'behind', 'while', 'onto', 'wherein', 'off', 'again', 'a', 'two', 'above', 'therein', 'sixty', 'those', 'whereas', 'using', 'latter', 'used', 'my', 'herself', 'hers', 'or', 'neither', 'forty', 'thereupon', 'now', 'after', 'yourself', 'whither', 'rather', 'once', 'from', 'until', 'anything', 'few', 'into', 'such', 'being', 'make', 'mine', 'please', 'along', 'hundred', 'should', 'below', 'third', 'unless', 'upon', 'perhaps', 'ours', 'but', 'never', 'whoever', 'fifty', 'any', 'all', 'nobody', 'there', 'have', 'anyhow', 'of', 'seem', 'down', 'is', 'every', '’ll', 'much', 'none', 'further', 'me', 'who', 'nevertheless', 'about', 'everywhere', 'name', 'enough', '’d', 'next', 'meanwhile', 'though', 'through', 'on', 'first', 'been', 'hereby', 'if', 'move', 'so', 'either', 'amongst', 'for', 'twelve', 'nor', 'she', 'always', 'these', 'as', '’ve', 'amount', '‘re', 'someone', 'afterwards', 'you', 'nowhere', 'itself', 'done', 'hereafter', 'within', 'made', 'ca', 'them'])
@@ -28,7 +42,14 @@ class TextProcessor:
                 (len(word) >= conf.MIN_INDEXED_WORD_LENGTH) and
                 (len(word) <= conf.MAX_INDEXED_WORD_LENGTH) and
                 ((not word.isnumeric()) or (len(word) <= conf.MAX_INDEXED_NUM_LENGTH)) and
+                
                 #  (not (any(c.isdigit() for c in word) and any(not c.isdigit() for c in word))) and
+                
+                # For any word that is not pure alpha or pure numeric, it should either be small,
+                # or have only few digits.
+                (word.isalpha() or word.isnumeric() or (len(word) <= conf.ALPHANUM_SAFE_THRESH) or \
+                    (sum(c.isdigit() for c in word) <= conf.ALPHANUM_UNSAFE_NUM_THRESH)) and
+                
                 (not word.startswith('#')))  # Remove hex codes.
                 # (not word.isnumeric()))  # Removes standalone numbers.
 
@@ -157,6 +178,9 @@ class Article:
     def Title(self):
         return self._title
 
+    def IsWorthwhile(self):
+        return ('wikipedia:' not in self._title.casefold())
+
 
 class InvertedIndex:
     def __init__(self, text_processor):
@@ -165,19 +189,19 @@ class InvertedIndex:
         self._text_processor = text_processor
 
     def _PostingListToString(self, article_id, posting):
-        posting_str = 'd' + str(article_id)
+        posting_str = 'd' + Encode(article_id)
         if posting[0] > 0:
-            posting_str += ('t' + str(posting[0]))
+            posting_str += ('t' + Encode(posting[0]))
         if posting[1] > 0:
-            posting_str += ('i' + str(posting[1]))
+            posting_str += ('i' + Encode(posting[1]))
         if posting[2] > 0:
-            posting_str += ('b' + str(posting[2]))
+            posting_str += ('b' + Encode(posting[2]))
         if posting[3] > 0:
-            posting_str += ('c' + str(posting[3]))
+            posting_str += ('c' + Encode(posting[3]))
         if posting[4] > 0:
-            posting_str += ('l' + str(posting[4]))
+            posting_str += ('l' + Encode(posting[4]))
         if posting[5] > 0:
-            posting_str += ('r' + str(posting[5]))
+            posting_str += ('r' + Encode(posting[5]))
         return posting_str
 
     def AddArticle(self, article):
@@ -255,6 +279,11 @@ class ParsingHandler:
         self._intermed_file_handler = intermed_file_handler
         self._title_handler = title_handler
 
+        self._skipped_articles = 0
+
+    def SkippedArticlesCount(self):
+        return self._skipped_articles
+
     def Parse(self, filename):
 
         for event, element in ET.iterparse(filename, events=('end', )):
@@ -290,11 +319,17 @@ class ParsingHandler:
                 self._title_handler.WriteFile()
 
             article = Article(self._article_id, title_text, body_text)
-            # Adding the article to the inverted index calls Article.Parse(),
+            # Adding the article to the inverted index calls Article.Index(),
             # which parses and indexes the individual article and can be
             # delegated to workers.
-            self._inverted_index.AddArticle(article)
+            if article.IsWorthwhile():
+                self._inverted_index.AddArticle(article)
+            else:
+                print(f'Skipping article "{article.Title()}".', end='\r')
+                self._skipped_articles += 1
             
+            # Titles are written and article IDs are reserved even for articles
+            # that are not worthwhile, to keep the IDs consistent.
             self._article_id += 1
 
             # Reached enough articles to write in a separate file.
@@ -323,3 +358,6 @@ def Parse(data_path, index_path):
     parser = ParsingHandler(inverted_index, intermed_file_handler, title_handler)
     
     parser.Parse(data_path)
+
+    print(f'Skipped {parser.SkippedArticlesCount()} articles.')
+# %%

@@ -5,6 +5,7 @@ from tqdm.auto import tqdm as tq
 import numpy as np
 from search import Searcher
 import config as conf
+from parse import Encode
 
 char_counts = []
 doc_counts = []
@@ -17,19 +18,19 @@ os.makedirs(dst_path)
 THRESH = 100000
 
 def PostingListToString(posting):
-    posting_str = 'd' + str(posting['d'])
+    posting_str = 'd' + Encode(posting['d'])
     if posting['t'] > 0:
-        posting_str += ('t' + str(posting['t']))
+        posting_str += ('t' + Encode(posting['t']))
     if posting['i'] > 0:
-        posting_str += ('i' + str(posting['i']))
+        posting_str += ('i' + Encode(posting['i']))
     if posting['b'] > 0:
-        posting_str += ('b' + str(posting['b']))
+        posting_str += ('b' + Encode(posting['b']))
     if posting['c'] > 0:
-        posting_str += ('c' + str(posting['c']))
+        posting_str += ('c' + Encode(posting['c']))
     if posting['l'] > 0:
-        posting_str += ('l' + str(posting['l']))
+        posting_str += ('l' + Encode(posting['l']))
     if posting['r'] > 0:
-        posting_str += ('r' + str(posting['r']))
+        posting_str += ('r' + Encode(posting['r']))
     return posting_str
 
 pbar = tq(os.listdir(src_path))

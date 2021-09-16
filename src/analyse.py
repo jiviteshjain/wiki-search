@@ -6,11 +6,11 @@ import numpy as np
 
 char_counts = []
 doc_counts = []
-alphanumerics = 0
+alphanumerics = []
 long_words = []
 THRESH = 100000
 # %%
-path = '../index/'
+path = '../index2/'
 for file in tq(os.listdir(path)):
     if file in ('heads.txt', 'titles'):
         continue
@@ -23,7 +23,7 @@ for file in tq(os.listdir(path)):
                 long_words.append((word, doc_counts[-1]))
             word = word.strip()
             if len(word) > 7 and word.isalnum() and (not word.isalpha()) and (not word.isnumeric()):
-                alphanumerics += 1
+                alphanumerics.append(word)
 # %%
 print(alphanumerics)
 
