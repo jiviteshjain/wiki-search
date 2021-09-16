@@ -2,6 +2,7 @@
 .vscode/
 data/
 index/
+analysis/
 *.ipynb
 stats.txt
 invertedindex_stats.txt

@@ -86,69 +86,23 @@ def FieldAgnosticSearch(token, index_heads, path):
 
     return search_results
 
-
-def SearchToken(token, fields, file_id, path):
-    print('start', os.getpid())
-    if file_id < 0:
-        return {}
-
-    with open(os.path.join(path, f'{file_id}.txt'), 'r') as f:
-        for line in f:
-            word, posting_string = line.strip().split(':')  # Gauranteed to have ':' and
-                                                            # non empty parts on both sides.
-            if word == token:
-                break
-        else:
-            return {}
-
-    posting_list = posting_string.split('d')[1:]  # Gauranteed to start with 'd' and be non-empty.
-                                                  # Skip the empty string in the beginning.
-    parsed_posting_list = [ParsePosting(p) for p in posting_list]
+def ProcessPostingString(posting_string, fields, num_docs):
+    posting = Searcher.ParsePosting(posting_string)
+    tf = ((conf.WEIGHT_TITLE * posting['t']) + \
+          (conf.WEIGHT_INFOBOX * posting['i']) + \
+          (conf.WEIGHT_BODY * posting['b']) + \
+          (conf.WEIGHT_CATEGORY * posting['c']) + \
+          (conf.WEIGHT_LINKS * posting['l']) + \
+          (conf.WEIGHT_REFERENCES * posting['r']))
     
-    search_results = {}
-    for posting in parsed_posting_list:
-        tf = (conf.WEIGHT_TITLE * posting['t']) + \
-             (conf.WEIGHT_INFOBOX * posting['i']) + \
-             (conf.WEIGHT_BODY * posting['b']) + \
-             (conf.WEIGHT_CATEGORY * posting['c']) + \
-             (conf.WEIGHT_LINKS * posting['l']) + \
-             (conf.WEIGHT_REFERENCES * posting['r'])
-        
-        # Only in case of field queries, increase the weights of those fields.
-        for field in fields:
-            if field != 'a':
-                tf += (conf.WEIGHT_REQUESTED_FIELD * posting[field])
+    # Only in case of field queries, increase the weights of those fields.
+    for field in fields:
+        if field != 'a':
+            tf += (conf.WEIGHT_REQUESTED_FIELD * posting[field])
 
-        idf = conf.NUM_ARTICLES / len(parsed_posting_list)
+    idf = conf.NUM_ARTICLES / num_docs
 
-        search_results[posting['d']] = math.log10(tf) * math.log10(idf)
-
-    print('end', os.getpid())
-    return search_results
-
-def ParsePosting(posting):
-        parsed_posting = {}
-        
-        field = 'd'
-        cur = ''
-        
-        for c in posting:
-            if c.isalpha():
-                parsed_posting[field] = int(cur)
-                field = c
-                cur = ''
-            else:
-                cur += c
-        
-        if len(cur) > 0:
-            parsed_posting[field] = int(cur)
-
-        # Set empty fields to 0.
-        for field in ('t', 'i', 'b', 'c', 'l', 'r'):  # 'd' is guaranteed to be present.
-            if field not in parsed_posting:
-                parsed_posting[field] = 0
-
-        return parsed_posting
+    return posting['d'], math.log10(tf) * math.log10(idf)
 
 
 class Searcher:
@@ -181,7 +135,7 @@ class Searcher:
         return query_fields
 
     @classmethod
-    def _ParsePosting(cls, posting):
+    def ParsePosting(cls, posting):
         parsed_posting = {}
         
         field = 'd'
@@ -205,6 +159,28 @@ class Searcher:
 
         return parsed_posting
 
+    def _SearchToken(self, token, fields):
+        file_id = self._index_heads.GetFile(token)
+        if file_id < 0:
+            return {}
+
+        with open(os.path.join(self._path, f'{file_id}.txt'), 'r') as f:
+            for line in f:
+                word, posting_string = line.strip().split(':')  # Gauranteed to have ':' and
+                                                                # non empty parts on both sides.
+                if word == token:
+                    break
+            else:
+                return {}
+
+        posting_list = posting_string.split('d')[1:]  # Gauranteed to start with 'd' and be non-empty.
+                                                      # Skip the empty string in the beginning.
+        
+        search_results = self._pool.starmap(ProcessPostingString,
+                                            zip(posting_list, repeat(fields), repeat(len(posting_list))))
+
+        return search_results
+
     def Search(self, query):
         query_fields = self._ParseQueryFields(query)
         
@@ -220,26 +196,13 @@ class Searcher:
                 else:
                     query_tokens[token].append(field)
 
-        # Find file ids in main process, because passing the entire list
-        # to the workers is anyways linear over the entire list, in the
-        # main thread.
-        file_ids = [self._index_heads.GetFile(t) for t in query_tokens.keys()]
-
-        # token_matches = self._pool.starmap(SearchToken,
-        #                                    zip(query_tokens.keys(),
-        #                                        query_tokens.values(),
-        #                                        file_ids,
-        #                                        repeat(self._path)),
-        #                                    conf.CHUNK_SIZE)
-        token_matches = [SearchToken(*x) for x in zip(query_tokens.keys(),
-                                               query_tokens.values(),
-                                               file_ids,
-                                               repeat(self._path))]
+        token_matches = [self._SearchToken(*x) for x in zip(query_tokens.keys(),
+                                               query_tokens.values())]
 
         # Aggregate results across terms, by adding the scores.
         scored_matches = {}
         for token_match in token_matches:
-            for article_id, tfidf in token_match.items():
+            for article_id, tfidf in token_match:
                 if article_id in scored_matches:
                     scored_matches[article_id] += tfidf
                 else:
@@ -261,10 +224,15 @@ class Searcher:
         return entitled_search_results
 
 # %%
-path = 'index'
-text_processor = TextProcessor()
-index_heads = IndexHeadsManager(path)
-titles = TitleManager(path)
-# pool = Pool(conf.NUM_SEARCH_WORKERS)
-searcher = Searcher(path, text_processor, index_heads, titles, None)
-searcher.Search('t:world0 i:cricket b:cup')
+if __name__ == '__main__':
+    path = '../index'
+    text_processor = TextProcessor()
+    index_heads = IndexHeadsManager(path)
+    titles = TitleManager(path)
+    pool = Pool(conf.NUM_SEARCH_WORKERS)
+    searcher = Searcher(path, text_processor, index_heads, titles, pool)
+    # print(searcher.Search('t:world i:cricket b:cup'))
+    print(searcher.Search('iphone apple mac'))
+    pool.close()
+    pool.join()
+# %%
