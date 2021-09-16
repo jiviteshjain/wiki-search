@@ -8,6 +8,7 @@ from multiprocessing import Pool
 from itertools import repeat
 import math
 from random import randrange
+from datetime import datetime, timedelta
 
 class IndexHeadsManager:
     def __init__(self, path):
@@ -224,15 +225,25 @@ class Searcher:
         return entitled_search_results
 
 # %%
-if __name__ == '__main__':
-    path = '../index'
+def Search(index_path, queries):
     text_processor = TextProcessor()
-    index_heads = IndexHeadsManager(path)
-    titles = TitleManager(path)
+    index_heads = IndexHeadsManager(index_path)
+    titles = TitleManager(index_path)
     pool = Pool(conf.NUM_SEARCH_WORKERS)
-    searcher = Searcher(path, text_processor, index_heads, titles, pool)
-    # print(searcher.Search('t:world i:cricket b:cup'))
-    print(searcher.Search('iphone apple mac'))
+    searcher = Searcher(index_path, text_processor, index_heads, titles, pool)
+
+    search_results = []
+    run_times = []
+
+    for query in queries:
+        begin = datetime.now()
+        search_results.append(searcher.Search(query))
+        end = datetime.now()
+        delta = end - begin
+        run_times.append(delta / timedelta(seconds=1))
+    
     pool.close()
     pool.join()
+
+    return search_results, run_times
 # %%
