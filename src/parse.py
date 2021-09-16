@@ -8,19 +8,27 @@ import re
 import xml.etree.cElementTree as ET
 # import Stemmer
 # %%
-def GetEncodingSymbol(num):
-    if (num >= 0 and num <= 9):
-        return chr(num + ord('0'))
-    else:
-        return chr(num - 10 + ord('A'))
+def Encode(number, base=conf.ENCODING_BASE):
+    alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
-def Encode(num, base=conf.ENCODING_BASE):
-    out = ''
-    while num:
-        out += GetEncodingSymbol(num % base)
-        num = num // base
+    if not isinstance(number, (int, )):
+        raise TypeError('number must be an integer')
 
-    return out[::-1]
+    base36 = ''
+    sign = ''
+
+    if number < 0:
+        sign = '-'
+        number = -number
+
+    if 0 <= number < base:
+        return sign + alphabet[number]
+
+    while number != 0:
+        number, i = divmod(number, base)
+        base36 = alphabet[i] + base36
+
+    return sign + base36
 
 class TextProcessor:
 
