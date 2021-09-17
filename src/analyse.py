@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from tqdm.auto import tqdm as tq
 import numpy as np
 from pprint import pprint
+import linecache
+from search import TitleManager
 
 char_counts = []
 doc_counts = []
@@ -41,4 +43,36 @@ plt.show()
 with open('../analysis/long-words.txt', 'w') as f:
     for word, count in long_words:
         f.write(str(count) + ', ' + word + '\n')
+# %%
+line = linecache.getline('../index2/2806.txt', 5137)
+# %%
+posting_string = line.strip().split(':')[1]
+# %%
+posting_list = posting_string.split('d')[1:]
+# %%
+def ParsePosting(posting):
+    parsed_posting = {}
+    
+    field = 'd'
+    cur = ''
+    
+    for c in posting:
+        if c.isalpha() and c.islower():
+            parsed_posting[field] = int(cur, base=10)
+            field = c
+            cur = ''
+        else:
+            cur += c
+    
+    if len(cur) > 0:
+        parsed_posting[field] = int(cur, base=10)
+
+    # Set empty fields to 0.
+    for field in ('t', 'i', 'b', 'c', 'l', 'r'):  # 'd' is guaranteed to be present.
+        if field not in parsed_posting:
+            parsed_posting[field] = 0
+
+    return parsed_posting
+
+parsed_posting_list = [ParsePosting(p) for p in posting_list]
 # %%

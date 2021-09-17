@@ -94,7 +94,7 @@ def ProcessPostingString(posting_string, fields, num_docs):
           (conf.WEIGHT_BODY * posting['b']) + \
           (conf.WEIGHT_CATEGORY * posting['c']) + \
           (conf.WEIGHT_LINKS * posting['l']) + \
-          (conf.WEIGHT_REFERENCES * posting['r']))
+          (conf.WEIGHT_REFERENCES * posting['r']) + 1)
     
     # Only in case of field queries, increase the weights of those fields.
     for field in fields:

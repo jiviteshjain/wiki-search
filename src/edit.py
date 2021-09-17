@@ -7,9 +7,9 @@ from parse import Encode
 
 # %%
 src_path = '../index-final/'
-dst_path = '../index-final-truncated/'
+dst_path = '../index-final-truncated-3/'
 os.makedirs(dst_path)
-THRESH = 500000
+THRESH = 300000
 
 def PostingListToString(posting):
     posting_str = 'd' + Encode(posting['d'])
