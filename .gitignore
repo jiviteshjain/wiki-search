@@ -1,11 +1,10 @@
 # Project specific
 .vscode/
+.DS_Store
 data/
 index*/
 analysis/
 *.ipynb
-stats.txt
-invertedindex_stats.txt
 queries*.txt
 queries_op*.txt
 
