@@ -5,8 +5,6 @@ data/
 index*/
 analysis/
 *.ipynb
-queries*.txt
-queries_op*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

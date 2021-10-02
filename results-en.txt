@@ -1,0 +1,120 @@
+66158, hidden markov model
+40820, markov chain
+128978, kalman filter
+254896, time series
+493780, baum–welch algorithm
+21025508, draft:colonial rule in india - a chronology
+524140, mixture model
+15752053, glossary of artificial intelligence
+28593, speech synthesis
+135436, list of statistics articles
+4.588657
+
+50237, the great gatsby
+4353557, f. scott fitzgerald
+4032773, daisy buchanan
+9903384, the great gatsby (2013 film)
+181131, zelda fitzgerald
+3080917, the great gatsby (1974 film)
+1747630, jay gatsby
+3087192, the great gatsby (1949 film)
+3087311, the great gatsby (2000 film)
+10930992, f. scott fitzgerald bibliography
+0.993064
+
+14513704, a star is born (2018 film)
+5948152, lady gaga
+18066060, a star is born (2018 soundtrack)
+18410538, list of accolades received by a star is born (2018 film)
+21025508, draft:colonial rule in india - a chronology
+132993, bbc television shakespeare
+8100406, aircraft in fiction
+905493, list of william shakespeare screen adaptations
+18325383, shallow (lady gaga and bradley cooper song)
+229800, list of people from texas
+4.700503
+
+14661599, template:attached kml/list of power stations in new zealand
+839813, google maps
+7850, google search
+11162196, google play
+641421, google
+11805671, bibliography of early united states naval history
+14780907, list of google april fools' day jokes
+14628245, palmyra
+841211, list of google products
+5441956, list of rescue 911 episodes
+0.504665
+
+19962917, tornado outbreak of april 22–23, 2020
+3180596, portal:military history of australia/selected anniversaries/april/april 22
+19053918, portal:military of australia/selected anniversaries/april/april 22
+17937295, april 2018 kabul suicide bombing (22 april 2018)
+8614855, portal:speculative fiction/anniversaries/april/april 22
+16832672, portal:taiwan/anniversaries/april/april 22
+3750578, portal:japan/anniversaries/april/april 22
+12902703, portal:aviation/historical anniversaries/april in aviation/april 22
+9274084, portal:anime and manga/anniversaries/april/april 22
+5395973, portal:cricket/anniversaries/april/april 22
+1.099827
+
+159852, unsupervised learning
+2821170, autoencoder
+159845, machine learning
+12370604, feature learning
+8996045, types of artificial neural networks
+16753524, outline of machine learning
+1012492, k-means clustering
+15752053, glossary of artificial intelligence
+16875790, machine learning in bioinformatics
+10384171, deep learning
+2.281688
+
+18469, saving private ryan
+13676500, bridge of spies (film)
+117366, band of brothers (miniseries)
+11496098, list of general hospital characters (2010s)
+14781964, list of chicago p.d. characters
+14009717, uconn huskies baseball, 2010–2019
+19543032, the citadel bulldogs baseball, 1990–1999
+11196009, list of the young and the restless characters (2000s)
+29071, tom hanks
+6137224, list of marvel comics characters: s
+1.965508
+
+8646, herman melville
+12860, moby-dick
+8294829, herman melville bibliography
+13422527, captain ahab
+19957986, herman melville (book)
+14259883, moby dick (whale)
+4057664, template:herman melville
+538173, history of whaling
+1029220, cetology of moby-dick
+2388873, whaling in australia
+0.437708
+
+44052, schindler's list
+25296, oskar schindler
+12940567, catholic resistance to nazi germany
+3116751, list of films based on actual events
+971622, kraków ghetto
+7271062, list of book-based war films (1927–1945 wars)
+370659, rescue of jews during the holocaust
+11570010, list of world war ii films since 1990
+11252547, helen jonas-rosenzweig
+2387607, german resistance to nazism
+3.283316
+
+15780, pride and prejudice
+7217105, pride and prejudice and zombies
+597152, pride and prejudice (1995 tv series)
+1223324, pride & prejudice (2005 film)
+14513878, george wickham
+12020967, bennet family
+1536879, becoming jane
+2504237, mr. darcy
+3058531, list of literary adaptations of pride and prejudice
+11676553, the lizzie bennet diaries
+1.66135
+
