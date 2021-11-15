@@ -1,5 +1,5 @@
 # wiki-search
-An indexing and search engine for English Wikipedia.
+An indexing and search engine for English and Hindi Wikipedia.
 
 ## Running the phase 1 code
 
